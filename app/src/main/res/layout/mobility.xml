@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Button" />
+
+    <TextView
+        android:id="@+id/connection"
+        android:layout_width="match_parent"
+        android:layout_height="150px"
+        android:text="Connection" />
+
+    <TextView
+        android:id="@+id/apState"
+        android:layout_width="match_parent"
+        android:layout_height="200px"
+        android:text="L2 AP State" />
+
+    <TextView
+        android:id="@+id/ipState"
+        android:layout_width="match_parent"
+        android:layout_height="200px"
+        android:text="L3 IP State" />
+</LinearLayout>

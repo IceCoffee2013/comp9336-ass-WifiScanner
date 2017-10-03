@@ -1,7 +1,6 @@
 package com.example.ass.wifiscaner;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 
 import android.content.Context;
@@ -9,20 +8,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiEnterpriseConfig;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.util.ArrayList;
@@ -43,10 +40,6 @@ public class MainActivity extends Activity {
     final static int WIFI_SHOW_COUNT = 20;
     List<ScanResult> wifiInfo = new ArrayList<>();
 
-    public enum SecurityMode {
-        OPEN, WEP, WPA, WPA2
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,17 +51,17 @@ public class MainActivity extends Activity {
         wifiReceiver = new WifiScanReceiver();
         if (wifi.isWifiEnabled()) wifi.setWifiEnabled(true);
 
-        Button clickMeBtn = (Button) findViewById(R.id.scan);
-        clickMeBtn.setOnClickListener(new View.OnClickListener() {
+        Button scanButton = (Button) findViewById(R.id.scan);
+        scanButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 wifi.startScan();
             }
         });
 
-        Button b2 = (Button) findViewById(R.id.button);
-        b2.setOnClickListener(new View.OnClickListener() {
+        Button infoButton = (Button) findViewById(R.id.info);
+        infoButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                myClick(v);
+                setProtocol();
             }
         });
 
@@ -84,13 +77,28 @@ public class MainActivity extends Activity {
                 }
             }
         });
-
-//        checkWifiFreq();
-
     }
 
-    public boolean is5GHz(int freq) {
-        return freq > 4900 && freq < 5900;
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+        switch (item.getItemId()) {
+            case R.id.mobility:
+                Intent i = new Intent(MainActivity.this, MobilityActivity.class);
+                startActivity(i);
+                break;
+            case R.id.main:
+                break;
+            default:
+                break;
+        }
+        return true;
     }
 
     public String ipFormat(int ip) {
@@ -100,33 +108,23 @@ public class MainActivity extends Activity {
                 ((ip >> 24) & 0xFF);
     }
 
-    public void checkWifiFreq() {
-        List<ScanResult> results = wifi.getScanResults();
-        boolean is5G = false;
-        for (ScanResult r : results) {
-            int freq = r.frequency;
-            if (is5GHz(freq)) {
-                is5G = true;
-                break;
-            }
-        }
-
-        TextView textView = (TextView) findViewById(R.id.textView2);
-        if (is5G) {
-            textView.setText("Support 5G");
-        } else {
-            textView.setText("Do not support 5G");
-        }
-
+    public void setProtocol() {
+        TextView textView = (TextView) findViewById(R.id.wifiInfo);
+        WifiInfo info = wifi.getConnectionInfo();
+        int speed = info.getLinkSpeed();
+        textView.setText(checkProtocol(speed) + " " + speed + "Mbps " + ipFormat(info.getIpAddress()) + " " + info.getBSSID());
     }
 
-    public void myClick(View v) {
-        // Write your own code
-        TextView txCounter = (TextView) findViewById(R.id.textView);
-        WifiInfo info = wifi.getConnectionInfo();
-        int ip = info.getIpAddress();
-        String ipAddress = ipFormat(ip);
-        txCounter.setText("IP: " + ipAddress + " | SSID: " + info.getSSID());
+    public String checkProtocol(int speed) {
+        if (speed > 800) {
+            return "802.11ac";
+        } else if (speed > 200) {
+            return "802.11n";
+        } else if (speed > 54) {
+            return "802.11g";
+        } else {
+            return "802.11b";
+        }
     }
 
     protected void onPause() {
@@ -178,48 +176,5 @@ public class MainActivity extends Activity {
 //            });
         }
 
-        private String ipFormat(int ip) {
-            return (ip & 0xFF) + "." +
-                    ((ip >> 8) & 0xFF) + "." +
-                    ((ip >> 16) & 0xFF) + "." +
-                    ((ip >> 24) & 0xFF);
-        }
-
-        private void connectWifi(final int position) {
-            String networkSSID = wifiInfo.get(position).SSID;
-            String networkBSSID = wifiInfo.get(position).BSSID;
-
-            String userName = "z5046341";
-            String passWord = "Ryj12345.";
-
-            WifiEnterpriseConfig enterpriseConfig = new WifiEnterpriseConfig();
-            WifiConfiguration wifiConfig = new WifiConfiguration();
-            wifiConfig.SSID = networkSSID;
-            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_EAP);
-            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.IEEE8021X);
-            enterpriseConfig.setIdentity(userName);
-            enterpriseConfig.setPassword(passWord);
-            enterpriseConfig.setEapMethod(WifiEnterpriseConfig.Eap.PEAP);
-            wifiConfig.enterpriseConfig = enterpriseConfig;
-
-            int netId = wifi.addNetwork(wifiConfig);
-            wifi.saveConfiguration();
-            wifi.disconnect();
-            wifi.enableNetwork(netId, true);
-            wifi.reconnect();
-            int ipAdress = wifi.getConnectionInfo().getIpAddress();
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-
-            new AlertDialog.Builder(MainActivity.this)
-                    .setTitle("Connecting...")
-                    .setMessage("ssid:" + networkSSID + "\n" + "bssid:" + networkBSSID + "\n" + "ip:" + ipFormat(ipAdress))
-                    .setPositiveButton("Confirm", null)
-                    .create().show();
-        }
     }
 }
