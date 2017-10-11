@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -14,6 +15,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import java.util.Date;
 
 /**
  * Created by langley on 3/10/17.
@@ -34,8 +37,28 @@ public class MobilityActivity extends Activity {
         wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifiBroadcastReceiver = new WifiBroadcastReceiver();
 
+        Button bt = findViewById(R.id.refresh);
+        bt.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                setConnectionInfo("");
+            }
+        });
+
         setConnectionInfo("");
 
+    }
+
+    protected void onPause() {
+        unregisterReceiver(wifiBroadcastReceiver);
+        super.onPause();
+    }
+
+    protected void onResume() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+        intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
+        registerReceiver(wifiBroadcastReceiver, intentFilter);
+        super.onResume();
     }
 
     @Override
@@ -82,66 +105,96 @@ public class MobilityActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+
+            Log.v("action", action);
             // AP
-            if (WifiManager.SUPPLICANT_STATE_CHANGED_ACTION .equals(action)) {
+            if (WifiManager.SUPPLICANT_STATE_CHANGED_ACTION.equals(action)) {
                 SupplicantState state = intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE);
 
+                if (!SupplicantState.isValidState(state) || state != SupplicantState.COMPLETED
+                        || state != SupplicantState.COMPLETED) {
+                    Log.v("invalid state: ", state.toString());
+                    return;
+                }
+
                 Log.v("Mobility", "AP: " + state.toString());
-                setConnectionInfo("AP State: " + state.toString());
+                setConnectionInfo("AP State: " + state.toString() + "\n");
+
+                StringBuffer apStateBuffer = new StringBuffer();
+                Long apBegin = Long.MAX_VALUE;
+
+                if (!lastAP.equals("")) {
+                    boolean connected = checkConnectedToDesiredWifi();
+                }
+
+                if (SupplicantState.isValidState(state)
+                        && state == SupplicantState.DISCONNECTED) {
+                    apBegin = System.currentTimeMillis();
+                }
 
                 if (SupplicantState.isValidState(state)
                         && state == SupplicantState.COMPLETED) {
-
-                    if (!lastAP.equals("")) {
-                        boolean connected = checkConnectedToDesiredWifi();
+                    if (apBegin != Long.MAX_VALUE) {
+                        Long delay = System.currentTimeMillis() - apBegin;
+                        apStateBuffer.append("L2 handoff delay: " + delay + "\n");
+                        Log.v("L2 handoff delay: ", delay + "");
                     }
-
-                    lastAP = wifiManager.getConnectionInfo().getBSSID();
-                    lastIP = ipFormat(wifiManager.getConnectionInfo().getIpAddress());
-
-                    StringBuffer apStateBuffer = new StringBuffer();
-                    apStateBuffer.append("L2 handoff" + "\n");
-                    apStateBuffer.append("Last AP: " + lastAP + "\n");
-                    apStateBuffer.append("current AP: " + wifiManager.getConnectionInfo().getBSSID() + "\n");
-                    apStateBuffer.append("current IP: " + ipFormat(wifiManager.getConnectionInfo().getIpAddress()) + "\n");
-                    apStateBuffer.append("L2 handoff delay: " + "\n");
-
-                    TextView apTextView = findViewById(R.id.apState);
-                    apTextView.setText(apStateBuffer);
+                    apBegin = Long.MAX_VALUE;
                 }
+
+                if (!lastAP.equals("")) {
+                    boolean connected = checkConnectedToDesiredWifi();
+                }
+
+                lastAP = wifiManager.getConnectionInfo().getBSSID();
+                lastIP = ipFormat(wifiManager.getConnectionInfo().getIpAddress());
+
+
+                apStateBuffer.append("AP state: " + state.toString() + "\n");
+                apStateBuffer.append("L2 handoff" + "\n");
+                apStateBuffer.append("Last AP: " + lastAP + "\n");
+                apStateBuffer.append("current AP: " + wifiManager.getConnectionInfo().getBSSID() + "\n");
+                apStateBuffer.append("current IP: " + ipFormat(wifiManager.getConnectionInfo().getIpAddress()) + "\n");
+
+                TextView apTextView = findViewById(R.id.apState);
+                apTextView.setText(apStateBuffer);
+//                }
             }
             // IP
-            if (WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION .equals(action)) {
+            if (WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION.equals(action)) {
                 SupplicantState state = intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE);
 
                 Log.v("Mobility", "IP: " + state.toString());
                 setConnectionInfo("IP State: " + state.toString());
 
-                if (SupplicantState.isValidState(state)
-                        && state == SupplicantState.COMPLETED) {
+//                if (SupplicantState.isValidState(state)
+//                        && state == SupplicantState.COMPLETED) {
 
-                    if (!lastIP.equals("")) {
-
-                    }
-
-                    lastAP = wifiManager.getConnectionInfo().getBSSID();
-                    lastIP = ipFormat(wifiManager.getConnectionInfo().getIpAddress());
-
-                    StringBuffer apStateBuffer = new StringBuffer();
-                    apStateBuffer.append("L3 handoff" + "\n");
-                    apStateBuffer.append("Last IP: " + lastIP + "\n");
-                    apStateBuffer.append("current AP: " + wifiManager.getConnectionInfo().getBSSID() + "\n");
-                    apStateBuffer.append("current IP: " + ipFormat(wifiManager.getConnectionInfo().getIpAddress()) + "\n");
-                    apStateBuffer.append("L3 handoff delay: " + "\n");
-
-                    TextView ipTextView = findViewById(R.id.ipState);
-                    ipTextView.setText(apStateBuffer);
+                if (!lastIP.equals("")) {
 
                 }
+
+                lastAP = wifiManager.getConnectionInfo().getBSSID();
+                lastIP = ipFormat(wifiManager.getConnectionInfo().getIpAddress());
+
+                StringBuffer ipStateBuffer = new StringBuffer();
+                ipStateBuffer.append("IP state: " + state.toString() + "\n");
+                ipStateBuffer.append("L3 handoff" + "\n");
+                ipStateBuffer.append("Last IP: " + lastIP + "\n");
+                ipStateBuffer.append("current AP: " + wifiManager.getConnectionInfo().getBSSID() + "\n");
+                ipStateBuffer.append("current IP: " + ipFormat(wifiManager.getConnectionInfo().getIpAddress()) + "\n");
+                ipStateBuffer.append("L3 handoff delay: " + "\n");
+
+                TextView ipTextView = findViewById(R.id.ipState);
+                ipTextView.setText(ipStateBuffer);
+
+//                }
             }
         }
 
-        /** Detect you are connected to a specific network. */
+        /**
+         * Detect you are connected to a specific network.
+         */
         private boolean checkConnectedToDesiredWifi() {
             boolean connected = false;
 

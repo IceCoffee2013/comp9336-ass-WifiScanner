@@ -4,26 +4,26 @@
     android:layout_height="match_parent">
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/refresh"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:text="Refresh" />
 
     <TextView
         android:id="@+id/connection"
         android:layout_width="match_parent"
-        android:layout_height="150px"
+        android:layout_height="200px"
         android:text="Connection" />
 
     <TextView
         android:id="@+id/apState"
         android:layout_width="match_parent"
-        android:layout_height="200px"
+        android:layout_height="250px"
         android:text="L2 AP State" />
 
     <TextView
         android:id="@+id/ipState"
         android:layout_width="match_parent"
-        android:layout_height="200px"
+        android:layout_height="250px"
         android:text="L3 IP State" />
 </LinearLayout>

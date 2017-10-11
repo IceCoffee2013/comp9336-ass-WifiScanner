@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
     WifiManager wifi;
     WifiScanReceiver wifiReceiver;
     boolean uniwideFilter = false;
-    final static int WIFI_SHOW_COUNT = 20;
+    final static int WIFI_SHOW_COUNT = 200;
     List<ScanResult> wifiInfo = new ArrayList<>();
 
     @Override
