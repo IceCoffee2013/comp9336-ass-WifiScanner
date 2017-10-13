@@ -145,23 +145,23 @@ public class MobilityActivity extends Activity {
                     apBegin = Long.MAX_VALUE;
                 }
 
-                if (!lastAP.equals("")) {
+                if (lastAP.equals("")) {
                     boolean connected = checkConnectedToDesiredWifi();
                     apStateBuffer.append("Last AP: NAN \n");
                 } else {
-                    lastAP = currentAP;
                     apStateBuffer.append("Last AP: " + lastAP + "\n");
                 }
 
-                if (!lastIP.equals("")) {
+                if (lastIP.equals("")) {
                     apStateBuffer.append("last IP: NAN \n");
                 } else {
-                    lastIP = currentIP;
                     apStateBuffer.append("last IP: " + lastIP + "\n");
                 }
 
                 currentAP = wifiManager.getConnectionInfo().getBSSID();
                 currentIP = ipFormat(wifiManager.getConnectionInfo().getIpAddress());
+                lastAP = currentAP;
+                lastIP = currentIP;
 
                 apStateBuffer.append("AP state: " + state.toString() + "\n");
                 apStateBuffer.append("current AP: " + currentAP + "\n");
@@ -174,35 +174,35 @@ public class MobilityActivity extends Activity {
 
 
             // IP
-            if (WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION.equals(action)) {
-                SupplicantState state = intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE);
-
-                Logger.e("IP: " + state.toString());
-                setConnectionInfo("IP State: " + state.toString());
-
-//                if (SupplicantState.isValidState(state)
-//                        && state == SupplicantState.COMPLETED) {
-
-                if (!lastIP.equals("")) {
-
-                }
-
-                lastAP = wifiManager.getConnectionInfo().getBSSID();
-                lastIP = ipFormat(wifiManager.getConnectionInfo().getIpAddress());
-
-                StringBuffer ipStateBuffer = new StringBuffer();
-                ipStateBuffer.append("IP state: " + state.toString() + "\n");
-                ipStateBuffer.append("L3 handoff" + "\n");
-                ipStateBuffer.append("Last IP: " + lastIP + "\n");
-                ipStateBuffer.append("current AP: " + wifiManager.getConnectionInfo().getBSSID() + "\n");
-                ipStateBuffer.append("current IP: " + ipFormat(wifiManager.getConnectionInfo().getIpAddress()) + "\n");
-                ipStateBuffer.append("L3 handoff delay: " + "\n");
-
-                TextView ipTextView = findViewById(R.id.ipState);
-                ipTextView.setText(ipStateBuffer);
-
+//            if (WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION.equals(action)) {
+//                SupplicantState state = intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE);
+//
+//                Logger.e("IP: " + state.toString());
+//                setConnectionInfo("IP State: " + state.toString());
+//
+////                if (SupplicantState.isValidState(state)
+////                        && state == SupplicantState.COMPLETED) {
+//
+//                if (!lastIP.equals("")) {
+//
 //                }
-            }
+//
+//                lastAP = wifiManager.getConnectionInfo().getBSSID();
+//                lastIP = ipFormat(wifiManager.getConnectionInfo().getIpAddress());
+//
+//                StringBuffer ipStateBuffer = new StringBuffer();
+//                ipStateBuffer.append("IP state: " + state.toString() + "\n");
+//                ipStateBuffer.append("L3 handoff" + "\n");
+//                ipStateBuffer.append("Last IP: " + lastIP + "\n");
+//                ipStateBuffer.append("current AP: " + wifiManager.getConnectionInfo().getBSSID() + "\n");
+//                ipStateBuffer.append("current IP: " + ipFormat(wifiManager.getConnectionInfo().getIpAddress()) + "\n");
+//                ipStateBuffer.append("L3 handoff delay: " + "\n");
+//
+//                TextView ipTextView = findViewById(R.id.ipState);
+//                ipTextView.setText(ipStateBuffer);
+//
+////                }
+//            }
         }
 
         /**
