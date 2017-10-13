@@ -116,7 +116,7 @@ public class MainActivity extends Activity {
     }
 
     public String checkProtocol(int speed) {
-        if (speed > 800) {
+        if (speed > 400) {
             return "802.11ac";
         } else if (speed > 200) {
             return "802.11n";
