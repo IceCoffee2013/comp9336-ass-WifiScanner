@@ -10,8 +10,10 @@ import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 
+import android.support.annotation.RequiresApi;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -60,6 +62,7 @@ public class MainActivity extends Activity {
 
         Button infoButton = (Button) findViewById(R.id.info);
         infoButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             public void onClick(View v) {
                 setProtocol();
             }
@@ -108,15 +111,17 @@ public class MainActivity extends Activity {
                 ((ip >> 24) & 0xFF);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void setProtocol() {
         TextView textView = (TextView) findViewById(R.id.wifiInfo);
         WifiInfo info = wifi.getConnectionInfo();
         int speed = info.getLinkSpeed();
-        textView.setText(checkProtocol(speed) + " " + speed + "Mbps " + ipFormat(info.getIpAddress()) + " " + info.getBSSID());
+        int freq = info.getFrequency();
+        textView.setText("freq: " + freq + "   " + "Proto:" + checkProtocol(speed, freq) + "   " + "speed: " + speed + "Mbps" + "\n" + "IP: " + ipFormat(info.getIpAddress()) + "   " + "BSSID: " + info.getBSSID());
     }
 
-    public String checkProtocol(int speed) {
-        if (speed > 800) {
+    public String checkProtocol(int speed, int freq) {
+        if (freq > 5000) {
             return "802.11ac";
         } else if (speed > 200) {
             return "802.11n";
@@ -163,6 +168,8 @@ public class MainActivity extends Activity {
                 wifiSet.add(wifiScanList.get(i).SSID);
                 count++;
             }
+            TextView textView = (TextView) findViewById(R.id.textView2);
+            textView.setText("Density: " + count);
 
             wifiListView.setAdapter(new ArrayAdapter<String>(getApplicationContext(), android.R.layout.test_list_item, wifiList));
 //            wifiListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
