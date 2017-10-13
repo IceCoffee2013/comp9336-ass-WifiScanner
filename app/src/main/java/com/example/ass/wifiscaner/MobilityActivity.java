@@ -16,7 +16,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.util.Date;
 
 /**
  * Created by langley on 3/10/17.
@@ -43,6 +42,8 @@ public class MobilityActivity extends Activity {
                 setConnectionInfo("");
             }
         });
+
+        Log.d("Mobility","debug");
 
         setConnectionInfo("");
 
@@ -106,18 +107,18 @@ public class MobilityActivity extends Activity {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
-            Log.v("action", action);
+            Log.d("Mobility", action);
             // AP
             if (WifiManager.SUPPLICANT_STATE_CHANGED_ACTION.equals(action)) {
                 SupplicantState state = intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE);
 
                 if (!SupplicantState.isValidState(state) || state != SupplicantState.COMPLETED
                         || state != SupplicantState.COMPLETED) {
-                    Log.v("invalid state: ", state.toString());
+                    Log.d("invalid state: ", state.toString());
                     return;
                 }
 
-                Log.v("Mobility", "AP: " + state.toString());
+                Log.d("Mobility", "AP: " + state.toString());
                 setConnectionInfo("AP State: " + state.toString() + "\n");
 
                 StringBuffer apStateBuffer = new StringBuffer();
@@ -137,7 +138,7 @@ public class MobilityActivity extends Activity {
                     if (apBegin != Long.MAX_VALUE) {
                         Long delay = System.currentTimeMillis() - apBegin;
                         apStateBuffer.append("L2 handoff delay: " + delay + "\n");
-                        Log.v("L2 handoff delay: ", delay + "");
+                        Log.d("Mobility", "L2 handoff delay: " + delay + "");
                     }
                     apBegin = Long.MAX_VALUE;
                 }
@@ -164,7 +165,7 @@ public class MobilityActivity extends Activity {
             if (WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION.equals(action)) {
                 SupplicantState state = intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE);
 
-                Log.v("Mobility", "IP: " + state.toString());
+                Log.d("Mobility", "IP: " + state.toString());
                 setConnectionInfo("IP State: " + state.toString());
 
 //                if (SupplicantState.isValidState(state)
